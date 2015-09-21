@@ -1,9 +1,9 @@
-# Distributed Eventual Queue for Vortex
+# Distributed Eventual Queue for Vortex OpenSplice
 In many situations (at least those we can imagine right now) such an distributed-eventual-queue is used in a 'worker-pattern' where you can load-balance the work around multiple queue-readers.
 Rather than load-balancing on individual samples, this version load-balances over instances (assuming that samples of an instance form a 'work-package').
 
 # Getting Started
-* compile the distributed queue broker (dqbroker.c)
+* compile the distributed queue broker (dqbroker.c) requires Vortex OpenSplice
 * start it with 2 parameters and 1 optional: dqbroker [-1] <partition> <topic>
   * Default is instance-basis yet with a '-1' parameter it schedules 'per sample'
   * where <partition> is the name of the 'queue-partition' that this broker will 'handle'
