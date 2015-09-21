@@ -2,6 +2,28 @@
 In many situations (at least those we can imagine right now) such an distributed-eventual-queue is used in a 'worker-pattern' where you can load-balance the work around multiple queue-readers.
 Rather than load-balancing on individual samples, this version load-balances over instances (assuming that samples of an instance form a 'work-package').
 
+# Getting Started
+* compile the distributed queue broker (dqbroker.c)
+* start it with 2 parameters and 1 optional: dqbroker [-1] <partition> <topic>
+  * Default is instance-basis yet with a '-1' parameter it schedules 'per sample'
+  * where <partition> is the name of the 'queue-partition' that this broker will 'handle'
+  * where <topic> is the name/pattern of the topics to be 'brokered'
+  * where <topic> published in <partition> are brokered towards mathing <topic> readers that each utilize a dedicate partition
+* the above test/image was generated using:
+  * brokering circles in the default partition i.e.: dqbroker "" Circle 
+  * publishing Circles in the default partition (and creating a local reader in that same partition with history-depth 30)
+  * starting 3 ishapes readers (each with history depth 10)
+    * demo_ishapes "banaan"
+    * demo_ishapes "banaan1"
+    * demo_ishapes "banaan2"
+
+## Some Notes
+* the broker creates reader/writers 'on the fly' and uses the QoS of the 'endpoints'
+* the broker uses synchronous reliability towards the readers 
+* its up to the set of readers to choose a unique partition
+* when multiple readers choose the same partition, they will receive the same data-set (could be useful for other patterns)
+* the broker uses KEEP_ALL with history-limits '10' for its generated reader/writers
+
 # Vortex Overview
 PrismTech’s Vortex Intelligent Data Sharing Platform provides the leading implementations of the Object Management Group’s Data Distribution Service (DDS) for Real-time Systems standard. DDS is a middleware protocol and API standard for data-centric connectivity and is the only standard able to meet the advanced requirements of the Internet of Things (IoT). DDS provides the low-latency data connectivity, extreme reliability and scalability that business and mission-critical IoT applications need. For more information visit www.prismtech.com/vortex .
 
