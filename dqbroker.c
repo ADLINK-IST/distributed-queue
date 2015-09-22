@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <unistd.h>
 
 #ifndef _WIN32
 #include <signal.h>
@@ -1098,7 +1099,7 @@ static void handle_create_reader(struct queueset *qset, const DDS_SubscriptionBu
     }
     wqos->durability = tqos->durability;
     wqos->reliability = rddesc->reliability;
-    wqos->reliability.synchronous = 1;
+    wqos->reliability.synchronous = 0; // for v6.5 and upwards, this can be set to '1'
     wqos->destination_order.kind = DDS_BY_SOURCE_TIMESTAMP_DESTINATIONORDER_QOS;
     wqos->history.kind = DDS_KEEP_ALL_HISTORY_QOS;
     wqos->resource_limits.max_samples = 10;
@@ -1250,7 +1251,7 @@ static void forward_data (struct queue *q, const DDS_SampleInfo *info, const voi
             idx = map_instance_handle(q, info->instance_handle);
         }
 
-        if ((rc = DDS_DataWriter_write_w_timestamp(q->sinks[idx].wr, (void *) data, DDS_HANDLE_NIL, &info->source_timestamp)) != DDS_RETCODE_OK) {
+        if ((rc = DDS__FooDataWriter_write_w_timestamp(q->sinks[idx].wr, (void *) data, DDS_HANDLE_NIL, &info->source_timestamp)) != DDS_RETCODE_OK) {
             error("forward_data: DDS_DataWriter_write_w_timestamp failed (%s)\n", dds_strerror(rc));
         }
         /* FIXME: unregister, require keyless topics, unregister only for non-keyless topics, or ... ? */
@@ -1263,12 +1264,12 @@ static void handle_data (struct queue *q)
     DDS_octSeq *mseq = DDS_octSeq__alloc();
     DDS_ReturnCode_t rc;
     do {
-        if ((rc = DDS_DataReader_take(q->source, (DDS_sequence) mseq, iseq, 1, DDS_ANY_SAMPLE_STATE, DDS_ANY_VIEW_STATE, DDS_ANY_INSTANCE_STATE)) == DDS_RETCODE_OK) {
+        if ((rc = DDS__FooDataReader_take(q->source, (DDS_sequence) mseq, iseq, 1, DDS_ANY_SAMPLE_STATE, DDS_ANY_VIEW_STATE, DDS_ANY_INSTANCE_STATE)) == DDS_RETCODE_OK) {
             assert(iseq->_length == 1);
             if (iseq->_buffer[0].valid_data) {
                 forward_data(q, &iseq->_buffer[0], mseq->_buffer);
             }
-            if ((rc = DDS_DataReader_return_loan(q->source, (DDS_sequence) mseq, iseq)) != DDS_RETCODE_OK) {
+            if ((rc = DDS__FooDataReader_return_loan(q->source, (DDS_sequence) mseq, iseq)) != DDS_RETCODE_OK) {
                 error("handle_data: DDS_DataReader_return_loan failed (%s)\n", dds_strerror(rc));
             }
         }
